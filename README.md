@@ -14,8 +14,7 @@ There are team project file
   • Monitor humidity in an infinite loop
   • If humidity becomes over 70%, turn on a red led.
   • FAN and DC Motor should be activated for 1 second.
-  • Demonstrate and record it!
- 
+
  - detect_temperature.c
   • Monitor temperature in an infinite loop
   • If temperature goes over 25’C, run the water pump for 1 sec.
