@@ -1,4 +1,5 @@
 # embeddedSystem
+-
 임베디드시스템 수업
 
 ###[2018.03.19] Embedded System hw1.hwp
@@ -11,7 +12,7 @@ This is miniprotject file, this source code controls the LED and servo motor by 
 
 ###[2018.04.23] detect_humidity.c	detect_temperature.c 
 -
-There are team project file.
+There are team project file.<br>
 watch the video : https://www.youtube.com/watch?v=NHwWXCTi1Oo
  
  - detect_humidity.c
