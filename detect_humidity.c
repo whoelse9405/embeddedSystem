@@ -17,9 +17,15 @@
 
 #define MAXTIMINGS 85
 
+#define HIGH 1
+#define LOW 0
+
 #define DCMOTOR	23		//GPIO 13
+#define RGBLEDPOWER	24	//GPIO 35
 #define FAN		22		//GPIO 22
-#define RED		7		//GPIO 7
+#define RED		8		//GPIO 7
+#define GREEN	7		//GPIO 5
+#define BLUE	9		//GPIO 3
 #define DHTPIN	11		//CE1
 
 int ret_humid,ret_temp;
@@ -113,6 +119,8 @@ int read_dht22_dat()
 
 void setup()
 {
+	signal(SIGINT,(void*)sig_handler);
+
 	if(wiringPiSetup() == -1)
 		exit(EXIT_FAILURE);
 	
@@ -124,10 +132,14 @@ void setup()
 	pinMode(RED,OUTPUT);
 	pinMode(DCMOTOR,OUTPUT);
 	pinMode(FAN,OUTPUT);
-
+	//pinMode(RGBLEDPOWER,OUTPUT);
+	//digitalWrite(RGBLEDPOWER,LOW);
+	digitalWrite(GREEN,LOW);
+	digitalWrite(BLUE,LOW);
+	digitalWrite(RED,LOW);
+	digitalWrite(FAN,LOW);
 	softPwmCreate(DCMOTOR,0,100);
-
-	signal(SIGINT,(void*)sig_handler);
+	softPwmWrite(DCMOTOR,0);
 }
 
 
@@ -143,20 +155,23 @@ int main()
 		}
 		else 
 		{
-			printf("습도 : %d\n",ret_humid);
+			printf("습도 : %d%%\n",ret_humid);
 			if(ret_humid>=70)
 			{
 
-				//led red
+				//led red on
 				digitalWrite(RED,HIGH);
-
-				//dc motor
+				//dc motor on
 				softPwmWrite(DCMOTOR,5);
-				//fan
+				//fan on
 				digitalWrite(FAN,HIGH);
 				delay(1000);
+
+				//fan off
 				digitalWrite(FAN,LOW);
+				//dcmotor off
 				softPwmWrite(DCMOTOR,0);
+				//led red off
 				digitalWrite(RED,LOW);
 				delay(1000);
 			}
