@@ -11,12 +11,12 @@ This is miniprotject file, this source code controls the LED and servo motor by 
 There are team project file.<br>
 watch the video : https://www.youtube.com/watch?v=NHwWXCTi1Oo
  
- - detect_humidity.c
+ 1. detect_humidity.c
   - Monitor humidity in an infinite loop
   - If humidity becomes over 70%, turn on a red led.
   - FAN and DC Motor should be activated for 1 second.
 
- - detect_temperature.c
+ 2. detect_temperature.c
   - Monitor temperature in an infinite loop
   - If temperature goes over 25’C, run the water pump for 1 sec.
   
