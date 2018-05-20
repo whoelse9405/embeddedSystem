@@ -1,0 +1,13 @@
+파일 추가
+git add [file_name]
+git commit -m "commit 내용"
+git push origin master
+
+
+업데이트 받기
+git pull
+
+
+강제로 초기화 하기
+git fetch origin
+git reset --hard origin/master

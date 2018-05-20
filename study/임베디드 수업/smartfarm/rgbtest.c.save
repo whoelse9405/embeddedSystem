@@ -1,0 +1,61 @@
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+
+#include <wiringPi.h>
+
+#define RGBLEDPOWER  24 //BCM_GPIO 19
+
+#define RED	27
+#define GREEN	28
+#define BLUE	29
+
+
+int main (void)
+{
+  if (wiringPiSetup () == -1)
+  {
+  	fprintf(stdout, "Unable to start wiringPi: %s\n", strerror(errno));
+  	return 1 ;
+  }
+  
+  pinMode(RGBLEDPOWER, OUTPUT);
+  pinMode(RED, OUTPUT);
+  pinMode(GREEN, OUTPUT);
+  pinMode(BLUE, OUTPUT);
+  int i;
+
+  for (i =0; i<10 ;i++)
+  {
+    //digitalWrite (PUMP, 1) ; // On
+    //digitalWrite (FAN, 1) ; // On
+    //digitalWrite(DCMOTOR, 1); //On
+    digitalWrite(RGBLEDPOWER, 1);
+
+    //delay (500) ; // ms
+
+    digitalWrite(RED, 1);
+    digitalWrite(GREEN, 0);
+    digitalWrite(BLUE, 0);
+    delay(100);
+
+    digitalWrite(RED, 0);
+    digitalWrite(GREEN, 1);
+    digitalWrite(BLUE, 0);
+    delay(100);
+
+    digitalWrite(RED, 0);
+    digitalWrite(GREEN, 0);
+    digitalWrite(BLUE, 1);
+    delay(100);
+    //digitalWrite(RGBLEDPOWER, 0); //Off
+
+  }
+  digitalWrite(RED, 0);
+  digitalWrite(GREEN, 0);
+  digitalWrite(BLUE, 0);
+  digitalWrite(RGBLEDPOWER, 0); //Off
+
+  return 0 ;
+}
+
