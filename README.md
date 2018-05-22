@@ -29,7 +29,7 @@ watch the video : https://www.youtube.com/watch?v=NHwWXCTi1Oo
  2.Consumer
   - pull it out and store data into database
 
-### [2018.05.22] Smartfarm.c smartfarm_capture.png
+### [2018.05.22] Smartfarm.c Smartfarm_capture.png
 watch the video : https://www.youtube.com/watch?v=Z8tzffkSW5k
 
  - Monitor temperature and humidity and lightness on every 1ms.
