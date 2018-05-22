@@ -15,7 +15,7 @@
 #include<math.h>
 
 //define value
-#define MAX 500
+#define BUFFMAX 500
 #define MONITORING_PERIOD 1
 #define MAXTIMINGS 85
 #define LOW 0
@@ -25,6 +25,8 @@
 #define MIN_BRIGHT 150
 #define MAX_BRIGHT 3000
 #define THRESHOLD_BRIGHT 1500
+#define TEMP 0
+#define LIGHT 1
 
 //define sensor data pin
 #define DHTPIN	11				//temp and humidity sensor
@@ -44,8 +46,14 @@ MYSQL *connector;
 MYSQL_RES *result;
 MYSQL_ROW roe;
 
-pthread_cond_t onfan,onled;
+pthread_cond_t light_empty,light_fill;
+pthread_cond_t temp_empty,temp_fill;
 pthread_mutex_t mutex;
+
+int buffer[2][BUFFMAX];
+int fill_ptr[2]={0,0};
+int use_ptr[2]={0,0};
+int count[2]={0,0};
 
 uint8_t isLed=FALSE;
 uint8_t isFan=FALSE;
@@ -213,16 +221,45 @@ void *sendData(void *arg)
 
 }
 
+void putData(int data, int sensor)
+{
+	buffer[sensor][fill_ptr[sensor]]=data;
+	fill_ptr[sensor]=(fill_ptr[sensor]+1)%BUFFMAX;
+	count[sensor]++;
+}
+
+int getData(int sensor)
+{
+	int data=buffer[sensor][use_ptr[sensor]];
+	use_ptr[sensor]=(use_ptr[sensor]+1)%BUFFMAX;
+	count[sensor]--;
+	return data;
+}
+
 void *getTempBrightness(void *arg)
 {
 
 	while(1)
 	{
-		pthread_mutex_lock(&mutex);
 		read_dht22_dat();				//get temp,humid
-		bright = read_mcp3208_adc(0);	//get brightness
-		if(bright>1500)
+		
+		pthread_mutex_lock(&mutex);
+		while(count[TEMP]==BUFFMAX)
+			pthread_cond_wait(&temp_empty,&mutex);
+		putData(ret_temp,TEMP);
+		pthread_cond_signal(&temp_fill);
 		pthread_mutex_unlock(&mutex);
+	
+		
+		bright = read_mcp3208_adc(0);	//get brightness
+		
+		pthread_mutex_lock(&mutex);
+		while(count[LIGHT]==BUFFMAX)
+			pthread_cond_wait(&light_empty,&mutex);
+		putData(bright,LIGHT);
+		pthread_cond_signal(&light_fill);
+		pthread_mutex_unlock(&mutex);
+
 		printf("temp : %d\t humid : %d\t brightness : %d\n",ret_temp,ret_humid,bright);
 		delay(1);
 	}
@@ -234,8 +271,13 @@ void *controlFan(void *arg)
 	while(1)
 	{
 		pthread_mutex_lock(&mutex);
-		
-		if(ret_temp>20)
+		while(count[TEMP]==0)
+			pthread_cond_wait(&temp_fill,&mutex);
+		int temp=getData(TEMP);
+		pthread_cond_signal(&temp_empty);
+		pthread_mutex_unlock(&mutex);
+
+		if(temp>20)
 			fancounter++;
 		else
 			fancounter=0;
@@ -253,8 +295,6 @@ void *controlFan(void *arg)
 			printf("turn off FAN\n");
 		}
 		
-		pthread_mutex_unlock(&mutex);
-
 		delay(100);
 	}
 }
@@ -263,21 +303,25 @@ void *controlLed(void *arg)
 {
 	while(1)
 	{
-		
 		pthread_mutex_lock(&mutex);
-		if(isLed==TRUE && bright<1800)
+		while(count[LIGHT]==0)
+			pthread_cond_wait(&light_fill,&mutex);
+		int lightness=getData(LIGHT);
+		pthread_cond_signal(&light_empty);
+		pthread_mutex_unlock(&mutex);
+
+		if(isLed==TRUE && lightness<1800)
 		{
 			isLed=FALSE;
 			digitalWrite(LED,LOW);
 			printf("turn off LED\n");
 		}
-		else if(isLed==FALSE && bright>1500)
+		else if(isLed==FALSE && lightness>1500)
 		{
 			digitalWrite(LED,HIGH);
 			isLed=TRUE;
 			printf("turn on LED\n");
 		}
-		pthread_mutex_unlock(&mutex);
 	}
 
 }
@@ -297,8 +341,6 @@ int main(int argc, char *argv[])
 	pthread_join(p2,NULL);
 	pthread_join(p3,NULL);
 	pthread_join(p4,NULL);
-
-	
 
 	mysql_close(connector);
 
